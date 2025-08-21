@@ -1,23 +1,7 @@
 ﻿using System;
-using System.Data;
-using MySqlConnector;
 
 namespace PizzeriaOpita.App.Domain
 {
-    public class Usuario
-    {
-        public string NombreUsuario { get; }
-        public string Password { get; }
-        public Rol Rol { get; }
-
-        public Usuario(string nombreUsuario, string password, Rol rol)
-        {
-            NombreUsuario = nombreUsuario;
-            Password = password;
-            Rol = rol;
-        }
-    }
-
     public enum Rol
     {
         Admin = 1,
@@ -25,59 +9,38 @@ namespace PizzeriaOpita.App.Domain
         Pizzero = 3
     }
 
-    public class PedidoListItem
+    public class Usuario
     {
-        public int IdPedido { get; set; }
-        public int IdPizza { get; set; }
-        public string NombrePizza { get; set; } = null!;
-        public string Estado { get; set; } = null!;
-        public DateTime Fecha { get; set; }
-
-        public PedidoListItem(int idPedido, int idPizza, string nombrePizza, string estado, DateTime fecha)
-        {
-            IdPedido = idPedido;
-            IdPizza = idPizza;
-            NombrePizza = nombrePizza;
-            Estado = estado;
-            Fecha = fecha;
-        }
-    }
-
-    public class PedidoPendienteItem
-    {
-        public int IdPedido { get; set; }
-        public int IdPizza { get; set; }
-        public string NombrePizza { get; set; } = null!;
-        public DateTime Fecha { get; set; }
-
-        public PedidoPendienteItem(int idPedido, int idPizza, string nombrePizza, DateTime fecha)
-        {
-            IdPedido = idPedido;
-            IdPizza = idPizza;
-            NombrePizza = nombrePizza;
-            Fecha = fecha;
-        }
+        public int IdUsuario { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+        public string NombreUsuario { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public Rol Rol { get; set; } = Rol.Asistente;
     }
 
     public class Pizza
     {
         public int IdPizza { get; set; }
-        public string Nombre { get; set; } = null!;
+        public string Nombre { get; set; } = string.Empty;
         public decimal Precio { get; set; }
+
+        public Pizza() { }
 
         public Pizza(int idPizza, string nombre, decimal precio)
         {
             IdPizza = idPizza;
-            Nombre = nombre;
+            Nombre = nombre ?? string.Empty;
             Precio = precio;
         }
     }
 
-    public static class Db
+    public class Pedido
     {
-        private const string Conn = "Server=localhost;Port=3306;Database=sys;User Id=root;Password=Es.172629282;AllowUserVariables=True;";
-
-        public static MySqlConnection Get()
-            => new MySqlConnection(Conn);
+        public int IdPedido { get; set; }
+        public int IdPizza { get; set; }
+        public int IdAsistente { get; set; }
+        public int? IdPizzero { get; set; }
+        public string Estado { get; set; } = "Pendiente";
+        public DateTime Fecha { get; set; } = DateTime.Now;
     }
 }
