@@ -1,77 +1,83 @@
-using MySqlConnector;
-using PizzeriaOpita.App.Domain;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using MySqlConnector;
+using PizzeriaOpita.App.Domain;
 
 namespace PizzeriaOpita.App.Infra
 {
     public class PedidoRepository
     {
-        public async Task<int> AddAsync(int idPizza, int idAsistente)
+        public async Task AddAsync(int idPizza, int idAsistente)
         {
-            using var cn = Db.Get();
-            await cn.OpenAsync();
-            using var cmd = cn.CreateCommand();
-            cmd.CommandText = @"INSERT INTO Pedidos(idPizza, idAsistente, estado) 
-                                VALUES(@p, @a, 'Pendiente'); SELECT LAST_INSERT_ID();";
-            cmd.Parameters.AddWithValue("@p", idPizza);
-            cmd.Parameters.AddWithValue("@a", idAsistente);
-            var id = await cmd.ExecuteScalarAsync();
-            return Convert.ToInt32(id);
+            using var conn = Db.Get();
+            await conn.OpenAsync();
+            using var cmd = new MySqlCommand(
+                "INSERT INTO Pedidos (idPizza, idAsistente, estado, fecha) VALUES (@idPizza, @idAsistente, 'Pendiente', @fecha);",
+                conn);
+            cmd.Parameters.AddWithValue("@idPizza", idPizza);
+            cmd.Parameters.AddWithValue("@idAsistente", idAsistente);
+            cmd.Parameters.AddWithValue("@fecha", DateTime.Now);
+            await cmd.ExecuteNonQueryAsync();
         }
 
-        public async Task<int> EntregarAsync(int idPedido)
+        public async Task EntregarAsync(int id)
         {
-            using var cn = Db.Get();
-            await cn.OpenAsync();
-            using var cmd = cn.CreateCommand();
-            cmd.CommandText = "UPDATE Pedidos SET estado='Entregado' WHERE idPedido=@id;";
-            cmd.Parameters.AddWithValue("@id", idPedido);
-            return await cmd.ExecuteNonQueryAsync();
+            using var conn = Db.Get();
+            await conn.OpenAsync();
+            using var cmd = new MySqlCommand("UPDATE Pedidos SET estado = 'Entregado' WHERE idPedido = @id;", conn);
+            cmd.Parameters.AddWithValue("@id", id);
+            await cmd.ExecuteNonQueryAsync();
         }
 
         public async Task<List<PedidoListItem>> ListAsync()
         {
-            using var cn = Db.Get();
-            await cn.OpenAsync();
-            using var cmd = cn.CreateCommand();
-            cmd.CommandText = @"
-                SELECT pe.idPedido, pe.idPizza, pi.nombre, pe.estado, pe.fecha
-                FROM Pedidos pe 
-                JOIN Pizzas pi ON pe.idPizza = pi.idPizza
-                ORDER BY pe.idPedido DESC;";
-            using var rd = await cmd.ExecuteReaderAsync();
-            var list = new List<PedidoListItem>();
-            while (await rd.ReadAsync())
-             // En PedidoRepository.cs, ListAsync
-list.Add(new PedidoListItem(rd.GetInt32(0), rd.GetInt32(1), rd.GetString(2), rd.GetString(3), rd.GetDateTime(4))
-{
-    NombrePizza = rd.GetString(2),
-    Estado = rd.GetString(3)
-});
-            return list;
+            var pedidos = new List<PedidoListItem>();
+            using var conn = Db.Get();
+            await conn.OpenAsync();
+            using var cmd = new MySqlCommand(@"
+                SELECT p.idPedido, p.idPizza, pi.nombre AS NombrePizza, p.estado, p.fecha
+                  FROM Pedidos p
+                  JOIN Pizzas pi ON p.idPizza = pi.idPizza
+                  ORDER BY p.idPedido DESC;", conn);
+
+            using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                pedidos.Add(new PedidoListItem(
+                    reader.GetInt32("idPedido"),
+                    reader.GetInt32("idPizza"),
+                    reader.GetString("NombrePizza"),
+                    reader.GetString("estado"),
+                    reader.GetDateTime("fecha")
+                ));
+            }
+            return pedidos;
         }
+
         public async Task<List<PedidoPendienteItem>> ListPendientesAsync()
         {
-            using var cn = Db.Get();
-            await cn.OpenAsync();
-            using var cmd = cn.CreateCommand();
-            cmd.CommandText = @"
-                SELECT pe.idPedido, pe.idPizza, pi.nombre, pe.fecha
-                FROM Pedidos pe 
-                JOIN Pizzas pi ON pe.idPizza = pi.idPizza
-                WHERE pe.estado='Pendiente'
-                ORDER BY pe.fecha;";
-            using var rd = await cmd.ExecuteReaderAsync();
-            var list = new List<PedidoPendienteItem>();
-            while (await rd.ReadAsync())
-                // En PedidoRepository.cs, ListPendientesAsync
-list.Add(new PedidoPendienteItem(rd.GetInt32(0), rd.GetInt32(1), rd.GetString(2), rd.GetDateTime(3))
-{
-    NombrePizza = rd.GetString(2)
-});
-            return list;
+            var pendientes = new List<PedidoPendienteItem>();
+            using var conn = Db.Get();
+            await conn.OpenAsync();
+            using var cmd = new MySqlCommand(@"
+                SELECT p.idPedido, p.idPizza, pi.nombre AS NombrePizza, p.fecha
+                  FROM Pedidos p
+                  JOIN Pizzas pi ON p.idPizza = pi.idPizza
+                  WHERE p.estado = 'Pendiente'
+                  ORDER BY p.fecha;", conn);
+
+            using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                pendientes.Add(new PedidoPendienteItem(
+                    reader.GetInt32("idPedido"),
+                    reader.GetInt32("idPizza"),
+                    reader.GetString("NombrePizza"),
+                    reader.GetDateTime("fecha")
+                ));
+            }
+            return pendientes;
         }
     }
 }
