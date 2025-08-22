@@ -1,28 +1,30 @@
-﻿// UI/LoginForm.cs
-using System;
+﻿using System;
 using System.Drawing;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using PizzeriaOpita.App.Domain;
+using PizzeriaOpita.App.Infra;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace PizzeriaOpita.App.UI
 {
     public class LoginForm : Form
     {
+        private readonly AuthService _auth;
         private readonly TextBox txtUsuario;
         private readonly TextBox txtContrasena;
         private readonly Button btnLogin;
+        private readonly Label lblTitulo;
         private readonly Label lblUsuario;
         private readonly Label lblContrasena;
-        private readonly Label lblTitulo;
-        private readonly AuthService _authService;
 
-        public LoginForm()
+        public LoginForm(AuthService auth)
         {
-            _authService = new AuthService();
+            _auth = auth ?? throw new ArgumentNullException(nameof(auth));
+
             Text = "Pizzería Opita - Iniciar Sesión";
-            Width = 400;
-            Height = 500;
+            Width = 420;
+            Height = 420;
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             StartPosition = FormStartPosition.CenterScreen;
@@ -30,69 +32,37 @@ namespace PizzeriaOpita.App.UI
             lblTitulo = new Label
             {
                 Text = "Bienvenido a Pizzería Opita",
-                Font = FontManager.RobotoBold,
+                Font = new Font(FontFamily.GenericSansSerif, 12, FontStyle.Bold),
                 AutoSize = true,
-                Location = new Point(50, 30),
-                TextAlign = ContentAlignment.MiddleCenter
+                Location = new Point(40, 20)
             };
 
-            lblUsuario = new Label
-            {
-                Text = "Usuario:",
-                Font = FontManager.RobotoRegular,
-                Location = new Point(50, 100),
-                Size = new Size(100, 30)
-            };
-            txtUsuario = new TextBox
-            {
-                PlaceholderText = "Usuario",
-                Location = new Point(50, 130),
-                Width = 300,
-                Font = FontManager.RobotoRegular
-            };
+            lblUsuario = new Label { Text = "Usuario:", Location = new Point(40, 80), Size = new Size(80, 24) };
+            txtUsuario = new TextBox { PlaceholderText = "Usuario", Location = new Point(40, 110), Width = 320 };
 
-            lblContrasena = new Label
-            {
-                Text = "Contraseña:",
-                Font = FontManager.RobotoRegular,
-                Location = new Point(50, 180),
-                Size = new Size(100, 30)
-            };
-            txtContrasena = new TextBox
-            {
-                PlaceholderText = "Contraseña",
-                Location = new Point(50, 210),
-                Width = 300,
-                Font = FontManager.RobotoRegular,
-                UseSystemPasswordChar = true
-            };
+            lblContrasena = new Label { Text = "Contraseña:", Location = new Point(40, 160), Size = new Size(80, 24) };
+            txtContrasena = new TextBox { PlaceholderText = "Contraseña", Location = new Point(40, 190), Width = 320, UseSystemPasswordChar = true };
 
-            btnLogin = new Button
-            {
-                Text = "Ingresar",
-                Font = FontManager.RobotoBold,
-                Location = new Point(50, 280),
-                Size = new Size(300, 40)
-            };
+            btnLogin = new Button { Text = "Ingresar", Location = new Point(40, 250), Size = new Size(320, 40) };
             btnLogin.Click += BtnLogin_Click;
 
             Controls.AddRange(new Control[] { lblTitulo, lblUsuario, txtUsuario, lblContrasena, txtContrasena, btnLogin });
 
             KeyPreview = true;
-            KeyDown += (s, e) =>
-            {
-                if (e.KeyCode == Keys.Enter) btnLogin.PerformClick();
-            };
+            KeyDown += (s, e) => { if (e.KeyCode == Keys.Enter) btnLogin.PerformClick(); };
         }
 
-        private void BtnLogin_Click(object? sender, EventArgs e)
+        private async void BtnLogin_Click(object? sender, EventArgs e)
         {
-            var usuario = _authService.Login(txtUsuario.Text, txtContrasena.Text);
-
-            if (usuario != null)
+            btnLogin.Enabled = false;
+            try
             {
-                MessageBox.Show($"Bienvenido {usuario.NombreUsuario} ({usuario.Rol})",
-                    "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                var usuario = await _auth.LoginAsync(txtUsuario.Text, txtContrasena.Text);
+                if (usuario == null)
+                {
+                    MessageBox.Show("Credenciales inválidas", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
 
                 Form? nextForm = usuario.Rol switch
                 {
@@ -104,13 +74,14 @@ namespace PizzeriaOpita.App.UI
 
                 if (nextForm != null)
                 {
-                    nextForm.Show();
                     Hide();
+                    nextForm.FormClosed += (_, __) => Close();
+                    nextForm.Show();
                 }
             }
-            else
+            finally
             {
-                MessageBox.Show("Credenciales inválidas", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                btnLogin.Enabled = true;
             }
         }
     }
