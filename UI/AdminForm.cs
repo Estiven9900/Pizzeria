@@ -1,36 +1,39 @@
-using PizzeriaOpita.App;
-using PizzeriaOpita.App.Domain;
 using System;
 using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using PizzeriaOpita.App.Domain;
 
-namespace PizzeriaOpita.UI
+namespace PizzeriaOpita.App.UI
 {
     public class AdminForm : Form
     {
-        private readonly Usuario _user;
         private readonly PizzaService _pizza;
         private readonly PedidoService _pedido;
 
-        private readonly TextBox txtNombre = new() { PlaceholderText = "Nombre de la pizza" };
-        private readonly NumericUpDown numPrecio = new() { DecimalPlaces = 2, Maximum = 1000000, Minimum = 0, Increment = 100 };
-        private readonly Button btnAgregar = new() { Text = "Agregar Pizza" };
-        private readonly Button btnVerPedidos = new() { Text = "Ver pedidos" };
-        private readonly DataGridView dgvPizzas = new() { Dock = DockStyle.Fill, ReadOnly = true, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill };
+        private readonly TextBox txtNombre;
+        private readonly NumericUpDown numPrecio;
+        private readonly Button btnAgregar;
+        private readonly Button btnVerPedidos;
+        private readonly DataGridView dgvPizzas;
 
-        public AdminForm(Usuario user, PizzaService pizza, PedidoService pedido)
+        public AdminForm(PizzaService pizza, PedidoService pedido)
         {
-            _user = user;
             _pizza = pizza;
             _pedido = pedido;
             Text = "Administrador - Pizzería Opita";
             WindowState = FormWindowState.Maximized;
 
+            txtNombre = new TextBox { PlaceholderText = "Nombre de la pizza" };
+            numPrecio = new NumericUpDown { DecimalPlaces = 2, Maximum = 1000000, Minimum = 0, Increment = 100 };
+            btnAgregar = new Button { Text = "Agregar Pizza" };
+            btnVerPedidos = new Button { Text = "Ver pedidos" };
+            dgvPizzas = new DataGridView { Dock = DockStyle.Fill, ReadOnly = true, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill };
+
             var top = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 60, Padding = new Padding(8) };
-            top.Controls.Add(new System.Windows.Forms.Label { Text = "Pizza:", AutoSize = true, Padding = new Padding(0, 8, 8, 0) });
+            top.Controls.Add(new Label { Text = "Pizza:", AutoSize = true, Padding = new Padding(0, 8, 8, 0) });
             top.Controls.Add(txtNombre);
-            top.Controls.Add(new System.Windows.Forms.Label { Text = "Precio:", AutoSize = true, Padding = new Padding(8, 8, 8, 0) });
+            top.Controls.Add(new Label { Text = "Precio:", AutoSize = true, Padding = new Padding(8, 8, 8, 0) });
             top.Controls.Add(numPrecio);
             top.Controls.Add(btnAgregar);
             top.Controls.Add(btnVerPedidos);

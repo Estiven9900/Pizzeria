@@ -1,23 +1,27 @@
-using PizzeriaOpita.App;
-using PizzeriaOpita.App.Domain;
+// UI/PizzeroForm.cs
+using System;
+using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using PizzeriaOpita.App.Domain;
 
-namespace PizzeriaOpita.UI
+namespace PizzeriaOpita.App.UI
 {
     public class PizzeroForm : Form
     {
-        private readonly Usuario _user;
         private readonly PedidoService _pedido;
-        private readonly DataGridView dgvPendientes = new() { Dock = DockStyle.Fill, ReadOnly = true, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill };
-        private readonly Button btnRefrescar = new() { Text = "Refrescar" };
+        private readonly DataGridView dgvPendientes;
+        private readonly Button btnRefrescar;
 
-        public PizzeroForm(Usuario user, PedidoService pedido)
+        public PizzeroForm(PedidoService pedido)
         {
-            _user = user;
             _pedido = pedido;
+
             Text = "Pizzero - Pizzería Opita";
             WindowState = FormWindowState.Maximized;
+
+            dgvPendientes = new DataGridView { Dock = DockStyle.Fill, ReadOnly = true, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill };
+            btnRefrescar = new Button { Text = "Refrescar" };
 
             var top = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 50, Padding = new Padding(8) };
             top.Controls.Add(btnRefrescar);

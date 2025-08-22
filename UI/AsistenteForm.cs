@@ -1,32 +1,38 @@
-using PizzeriaOpita.App;
-using PizzeriaOpita.App.Domain;
+// UI/AsistenteForm.cs
+using System;
 using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using PizzeriaOpita.App.Domain;
 
-namespace PizzeriaOpita.UI
+namespace PizzeriaOpita.App.UI
 {
     public class AsistenteForm : Form
     {
-        private readonly Usuario _user;
         private readonly PizzaService _pizza;
         private readonly PedidoService _pedido;
+        private readonly AuthService _authService;
 
-        private readonly ComboBox cboPizzas = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 240 };
-        private readonly Button btnRegistrar = new() { Text = "Registrar pedido" };
-        private readonly Button btnEntregar = new() { Text = "Marcar entregado" };
-        private readonly DataGridView dgvPedidos = new() { Dock = DockStyle.Fill, ReadOnly = true, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill };
+        private readonly ComboBox cboPizzas;
+        private readonly Button btnRegistrar;
+        private readonly Button btnEntregar;
+        private readonly DataGridView dgvPedidos;
 
-        public AsistenteForm(Usuario user, PizzaService pizza, PedidoService pedido)
+        public AsistenteForm(PizzaService pizza, PedidoService pedido, AuthService authService)
         {
-            _user = user;
             _pizza = pizza;
             _pedido = pedido;
+            _authService = authService;
             Text = "Asistente - Pizzería Opita";
             WindowState = FormWindowState.Maximized;
 
+            cboPizzas = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Width = 240 };
+            btnRegistrar = new Button { Text = "Registrar pedido" };
+            btnEntregar = new Button { Text = "Marcar entregado" };
+            dgvPedidos = new DataGridView { Dock = DockStyle.Fill, ReadOnly = true, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill };
+
             var top = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 60, Padding = new Padding(8) };
-            top.Controls.Add(new System.Windows.Forms.Label { Text = "Pizza:", AutoSize = true, Padding = new Padding(0, 8, 8, 0) });
+            top.Controls.Add(new Label { Text = "Pizza:", AutoSize = true, Padding = new Padding(0, 8, 8, 0) });
             top.Controls.Add(cboPizzas);
             top.Controls.Add(btnRegistrar);
             top.Controls.Add(btnEntregar);
@@ -40,7 +46,7 @@ namespace PizzeriaOpita.UI
             {
                 if (cboPizzas.SelectedValue is int idPizza)
                 {
-                    var idAsistente = AuthService.GetUserIdForDb(_user.Rol);
+                    var idAsistente = _authService.GetUserIdForDb(Rol.Asistente);
                     await _pedido.Registrar(idPizza, idAsistente);
                     await RefreshGrid();
                 }
