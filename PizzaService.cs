@@ -1,8 +1,9 @@
-using PizzeriaOpita.App.Domain;
-using PizzeriaOpita.App.Infra;
+// PizzaService.cs
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using PizzeriaOpita.App.Domain;
+using PizzeriaOpita.App.Infra;
 
 namespace PizzeriaOpita.App
 {
@@ -12,16 +13,19 @@ namespace PizzeriaOpita.App
 
         public PizzaService(PizzaRepository repo)
         {
-            _repo = repo;
+            _repo = repo ?? throw new ArgumentNullException(nameof(repo));
         }
 
-        public Task<List<Pizza>> Listar() => _repo.ListAsync();
-
-        public Task<int> Registrar(string nombre, decimal precio)
+        public async Task Registrar(string nombre, decimal precio)
         {
             if (string.IsNullOrWhiteSpace(nombre)) throw new ArgumentException("Nombre requerido");
             if (precio <= 0) throw new ArgumentException("Precio debe ser mayor a 0");
-            return _repo.AddAsync(nombre.Trim(), precio);
+            await _repo.AddAsync(new Pizza(0, nombre.Trim(), precio));
+        }
+
+        public async Task<List<Pizza>> Listar()
+        {
+            return await _repo.ListAsync();
         }
     }
 }
