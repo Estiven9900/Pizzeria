@@ -16,6 +16,8 @@ namespace PizzeriaOpita.App.UI
         private readonly TextBox txtNombre;
         private readonly NumericUpDown numPrecio;
         private readonly Button btnAgregar;
+        private readonly Button btnEditar;
+        private readonly Button btnEliminar;
         private readonly Button btnVerPedidos;
         private readonly Button btnLogout;
         private readonly DataGridView dgvPizzas;
@@ -33,15 +35,28 @@ namespace PizzeriaOpita.App.UI
             Padding = new Padding(20);
             BackColor = Color.WhiteSmoke;
 
-            var top = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 80, Padding = new Padding(8), FlowDirection = FlowDirection.LeftToRight };
+            var top = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                Height = 80,
+                Padding = new Padding(8),
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = false
+            };
 
             txtNombre = new TextBox { PlaceholderText = "Nombre de la pizza", Width = 320, Margin = new Padding(0, 10, 10, 10) };
             numPrecio = new NumericUpDown { DecimalPlaces = 2, Maximum = 1000000, Minimum = 0, Width = 120, Margin = new Padding(0, 10, 10, 10) };
+
             btnAgregar = new Button { Text = "Agregar Pizza", AutoSize = true, Margin = new Padding(0, 10, 10, 10) };
+            btnEditar = new Button { Text = "Editar Pizza", AutoSize = true, Margin = new Padding(0, 10, 10, 10) };
+            btnEliminar = new Button { Text = "Eliminar Pizza", AutoSize = true, Margin = new Padding(0, 10, 10, 10) };
             btnVerPedidos = new Button { Text = "Ver pedidos", AutoSize = true, Margin = new Padding(0, 10, 10, 10) };
             btnLogout = new Button { Text = "Cerrar sesión", AutoSize = true, Margin = new Padding(0, 10, 10, 10) };
 
+            // Wire events
             btnAgregar.Click += BtnAgregar_Click;
+            btnEditar.Click += BtnEditar_Click;
+            btnEliminar.Click += BtnEliminar_Click;
             btnVerPedidos.Click += BtnVerPedidos_Click;
             btnLogout.Click += BtnLogout_Click;
 
@@ -50,10 +65,18 @@ namespace PizzeriaOpita.App.UI
             top.Controls.Add(new Label { Text = "Precio:", AutoSize = true, Padding = new Padding(8, 12, 6, 0) });
             top.Controls.Add(numPrecio);
             top.Controls.Add(btnAgregar);
+            top.Controls.Add(btnEditar);
+            top.Controls.Add(btnEliminar);
             top.Controls.Add(btnVerPedidos);
             top.Controls.Add(btnLogout);
 
-            dgvPizzas = new DataGridView { Dock = DockStyle.Fill, ReadOnly = true, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill, Margin = new Padding(0, 10, 0, 0) };
+            dgvPizzas = new DataGridView
+            {
+                Dock = DockStyle.Fill,
+                ReadOnly = true,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                Margin = new Padding(0, 10, 0, 0)
+            };
 
             Controls.Add(dgvPizzas);
             Controls.Add(top);
@@ -77,14 +100,82 @@ namespace PizzeriaOpita.App.UI
         {
             try
             {
-                await _pizzaService.Registrar(txtNombre.Text, numPrecio.Value);
+                var nombre = txtNombre.Text?.Trim() ?? string.Empty;
+                var precio = numPrecio.Value;
+
+                if (string.IsNullOrWhiteSpace(nombre))
+                {
+                    MessageBox.Show("Ingrese el nombre de la pizza.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+                if (precio <= 0)
+                {
+                    MessageBox.Show("Ingrese un precio válido.", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                var nuevaPizza = new PizzeriaOpita.App.Domain.Pizza
+                {
+                    IdPizza = 0,
+                    Nombre = nombre,
+                    Precio = precio
+                };
+
+                await _pizzaService.Registrar(nuevaPizza);
                 txtNombre.Clear();
                 numPrecio.Value = 0;
                 await Refrescar();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show($"Error al registrar pizza: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private async void BtnEditar_Click(object? sender, EventArgs e)
+        {
+            try
+            {
+                if (dgvPizzas.CurrentRow == null) return;
+
+                int idPizza = Convert.ToInt32(dgvPizzas.CurrentRow.Cells["IdPizza"].Value);
+                string nombre = dgvPizzas.CurrentRow.Cells["Nombre"].Value?.ToString() ?? string.Empty;
+                decimal precio = Convert.ToDecimal(dgvPizzas.CurrentRow.Cells["Precio"].Value);
+
+                var nuevoNombre = Microsoft.VisualBasic.Interaction.InputBox("Nuevo nombre:", "Editar Pizza", nombre);
+                var nuevoPrecioStr = Microsoft.VisualBasic.Interaction.InputBox("Nuevo precio:", "Editar Pizza", precio.ToString());
+
+                if (!decimal.TryParse(nuevoPrecioStr, out decimal nuevoPrecio))
+                {
+                    MessageBox.Show("Precio inválido", "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                await _pizzaService.Editar(new PizzeriaOpita.App.Domain.Pizza { IdPizza = idPizza, Nombre = nuevoNombre, Precio = nuevoPrecio });
+                await Refrescar();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al editar pizza: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private async void BtnEliminar_Click(object? sender, EventArgs e)
+        {
+            try
+            {
+                if (dgvPizzas.CurrentRow == null) return;
+                int idPizza = Convert.ToInt32(dgvPizzas.CurrentRow.Cells["IdPizza"].Value);
+                var r = MessageBox.Show("¿Eliminar pizza?", "Confirmar", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (r == DialogResult.Yes)
+                {
+                    await _pizzaService.Eliminar(idPizza);
+                    await Refrescar();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al eliminar pizza: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

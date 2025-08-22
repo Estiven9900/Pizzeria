@@ -1,5 +1,3 @@
-// PizzaService.cs
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using PizzeriaOpita.App.Domain;
@@ -13,19 +11,29 @@ namespace PizzeriaOpita.App
 
         public PizzaService(PizzaRepository repo)
         {
-            _repo = repo ?? throw new ArgumentNullException(nameof(repo));
+            _repo = repo;
         }
 
-        public async Task Registrar(string nombre, decimal precio)
+        public async Task Registrar(Pizza pizza)
         {
-            if (string.IsNullOrWhiteSpace(nombre)) throw new ArgumentException("Nombre requerido");
-            if (precio <= 0) throw new ArgumentException("Precio debe ser mayor a 0");
-            await _repo.AddAsync(new Pizza(0, nombre.Trim(), precio));
+            await _repo.Add(pizza);
         }
 
         public async Task<List<Pizza>> Listar()
         {
-            return await _repo.ListAsync();
+            return await _repo.GetAll();
+        }
+
+        // 🔹 Editar Pizza
+        public async Task Editar(Pizza pizza)
+        {
+            await _repo.Update(pizza);
+        }
+
+        // 🔹 Eliminar Pizza
+        public async Task Eliminar(int idPizza)
+        {
+            await _repo.Delete(idPizza);
         }
     }
 }
