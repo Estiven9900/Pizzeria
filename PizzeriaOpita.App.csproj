@@ -1,17 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
-        <OutputType>WinExe</OutputType>
-        <TargetFramework>net9.0-windows</TargetFramework>
-        <UseWindowsForms>true</UseWindowsForms>
-        <Nullable>enable</Nullable>
-    </PropertyGroup>
-    <ItemGroup>
-        <PackageReference Include="MySqlConnector" Version="2.3.7" />
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
-    </ItemGroup>
-    <ItemGroup>
-        <EmbeddedResource Include="Resources\pizza_background.jpg" />
-<EmbeddedResource Include="Resources\Fonts\Roboto-Regular.ttf" />
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows7.0</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <OutputType>WinExe</OutputType>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MaterialSkin.2" Version="2.3.1" />
+    <PackageReference Include="MySqlConnector" Version="2.3.7" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\PizzaBackground.png" />
+    <EmbeddedResource Include="Resources\Fonts\Roboto-Regular.ttf" />
     <EmbeddedResource Include="Resources\Fonts\Roboto-Bold.ttf" />
-    </ItemGroup>
+  </ItemGroup>
 </Project>
