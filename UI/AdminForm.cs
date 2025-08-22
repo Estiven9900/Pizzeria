@@ -29,27 +29,31 @@ namespace PizzeriaOpita.App.UI
             Text = "Administrador - Pizzería Opita";
             WindowState = FormWindowState.Maximized;
 
-            var top = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 70, Padding = new Padding(8) };
+            // Estilo general / sangrado
+            Padding = new Padding(20);
+            BackColor = Color.WhiteSmoke;
 
-            txtNombre = new TextBox { PlaceholderText = "Nombre de la pizza", Width = 300 };
-            numPrecio = new NumericUpDown { DecimalPlaces = 2, Maximum = 100000, Minimum = 0, Width = 120 };
-            btnAgregar = new Button { Text = "Agregar Pizza" };
-            btnVerPedidos = new Button { Text = "Ver pedidos" };
-            btnLogout = new Button { Text = "Cerrar sesión" };
+            var top = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 80, Padding = new Padding(8), FlowDirection = FlowDirection.LeftToRight };
+
+            txtNombre = new TextBox { PlaceholderText = "Nombre de la pizza", Width = 320, Margin = new Padding(0, 10, 10, 10) };
+            numPrecio = new NumericUpDown { DecimalPlaces = 2, Maximum = 1000000, Minimum = 0, Width = 120, Margin = new Padding(0, 10, 10, 10) };
+            btnAgregar = new Button { Text = "Agregar Pizza", AutoSize = true, Margin = new Padding(0, 10, 10, 10) };
+            btnVerPedidos = new Button { Text = "Ver pedidos", AutoSize = true, Margin = new Padding(0, 10, 10, 10) };
+            btnLogout = new Button { Text = "Cerrar sesión", AutoSize = true, Margin = new Padding(0, 10, 10, 10) };
 
             btnAgregar.Click += BtnAgregar_Click;
             btnVerPedidos.Click += BtnVerPedidos_Click;
             btnLogout.Click += BtnLogout_Click;
 
-            top.Controls.Add(new Label { Text = "Pizza:", AutoSize = true, Padding = new Padding(0,8,8,0) });
+            top.Controls.Add(new Label { Text = "Pizza:", AutoSize = true, Padding = new Padding(0, 12, 6, 0) });
             top.Controls.Add(txtNombre);
-            top.Controls.Add(new Label { Text = "Precio:", AutoSize = true, Padding = new Padding(8,8,8,0) });
+            top.Controls.Add(new Label { Text = "Precio:", AutoSize = true, Padding = new Padding(8, 12, 6, 0) });
             top.Controls.Add(numPrecio);
             top.Controls.Add(btnAgregar);
             top.Controls.Add(btnVerPedidos);
             top.Controls.Add(btnLogout);
 
-            dgvPizzas = new DataGridView { Dock = DockStyle.Fill, ReadOnly = true, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill };
+            dgvPizzas = new DataGridView { Dock = DockStyle.Fill, ReadOnly = true, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill, Margin = new Padding(0, 10, 0, 0) };
 
             Controls.Add(dgvPizzas);
             Controls.Add(top);
@@ -59,7 +63,14 @@ namespace PizzeriaOpita.App.UI
 
         private async Task Refrescar()
         {
-            dgvPizzas.DataSource = await _pizzaService.Listar();
+            try
+            {
+                dgvPizzas.DataSource = await _pizzaService.Listar();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al listar pizzas: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private async void BtnAgregar_Click(object? sender, EventArgs e)
@@ -71,13 +82,23 @@ namespace PizzeriaOpita.App.UI
                 numPrecio.Value = 0;
                 await Refrescar();
             }
-            catch (Exception ex) { MessageBox.Show(ex.Message, "Error"); }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Validación", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         private async void BtnVerPedidos_Click(object? sender, EventArgs e)
         {
-            var data = await _pedidoService.Listar();
-            new PedidosListForm(data).ShowDialog(this);
+            try
+            {
+                var data = await _pedidoService.Listar();
+                new PedidosListForm(data).ShowDialog(this);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al obtener pedidos: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void BtnLogout_Click(object? sender, EventArgs e)

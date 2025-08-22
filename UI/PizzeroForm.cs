@@ -24,9 +24,13 @@ namespace PizzeriaOpita.App.UI
             Text = "Pizzero - Pizzería Opita";
             WindowState = FormWindowState.Maximized;
 
-            dgvPendientes = new DataGridView { Dock = DockStyle.Fill, ReadOnly = true, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill };
-            btnRefrescar = new Button { Text = "Refrescar" };
-            btnLogout = new Button { Text = "Cerrar sesión" };
+            // Estilo general / sangrado
+            Padding = new Padding(20);
+            BackColor = Color.WhiteSmoke;
+
+            dgvPendientes = new DataGridView { Dock = DockStyle.Fill, ReadOnly = true, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill, Margin = new Padding(0, 10, 0, 0) };
+            btnRefrescar = new Button { Text = "Refrescar", AutoSize = true, Margin = new Padding(0, 10, 10, 10) };
+            btnLogout = new Button { Text = "Cerrar sesión", AutoSize = true, Margin = new Padding(0, 10, 10, 10) };
 
             var top = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 60, Padding = new Padding(8) };
             top.Controls.Add(btnRefrescar);
@@ -42,7 +46,14 @@ namespace PizzeriaOpita.App.UI
 
         private async Task RefreshGrid()
         {
-            dgvPendientes.DataSource = await _pedidoService.Pendientes();
+            try
+            {
+                dgvPendientes.DataSource = await _pedidoService.Pendientes();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error al cargar pendientes: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void BtnLogout_Click(object? sender, EventArgs e)
