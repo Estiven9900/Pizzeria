@@ -116,11 +116,17 @@ public async Task<Usuario?> LoginAsync(string nombreUsuario, string password)
 ALTER TABLE Usuarios MODIFY COLUMN `contraseña` VARCHAR(100);
 
 -- 2. Crear contraseña temporal hasheada
--- Hash de "TemporalPassword123!" generado con BCrypt
-UPDATE Usuarios 
-SET `contraseña` = '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5lDLW6B4XfTfW';
+-- IMPORTANTE: Generar un hash único para cada entorno
+-- Ejemplo de cómo generar el hash en C#:
+-- var hash = BCrypt.Net.BCrypt.HashPassword("TU_CONTRASEÑA_TEMPORAL_AQUI", 12);
+-- 
+-- NO usar este ejemplo en producción - es solo referencia:
+-- UPDATE Usuarios 
+-- SET `contraseña` = '$2a$12$...HASH_GENERADO_AQUI...';
+--
+-- Recomendación: Generar hash único y ejecutar UPDATE para cada usuario individualmente
 
--- 3. Notificar a usuarios para que cambien su contraseña
+-- 3. Notificar a usuarios para que cambien su contraseña en primer login
 ```
 
 **Opción B: Migración Gradual (Recomendado)**

@@ -131,8 +131,10 @@ namespace PizzeriaOpita.App
             if (pizza.Precio > 999999.99m)
                 throw new ArgumentException("El precio de la pizza es demasiado alto", nameof(pizza.Precio));
             
-            // ✅ SEGURIDAD: Prevenir caracteres especiales que podrían causar problemas
-            if (pizza.Nombre.Contains("<") || pizza.Nombre.Contains(">") || pizza.Nombre.Contains("'") || pizza.Nombre.Contains("\""))
+            // ✅ SEGURIDAD: Prevenir caracteres especiales problemáticos
+            // Permitir solo letras, números, espacios y caracteres comunes en nombres de comida
+            var caracteresProhibidos = new[] { '<', '>', '\'', '"', ';', '\\', '/', '*', '=', '|' };
+            if (pizza.Nombre.IndexOfAny(caracteresProhibidos) >= 0)
                 throw new ArgumentException("El nombre de la pizza contiene caracteres no permitidos", nameof(pizza.Nombre));
         }
     }

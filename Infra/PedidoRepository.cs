@@ -31,6 +31,8 @@ namespace PizzeriaOpita.App.Infra
                     "INSERT INTO Pedidos (idPizza, idAsistente, estado, fecha) VALUES (@idPizza, @idAsistente, @estado, @fecha);",
                     conn);
                     
+                // Nota: AddWithValue es seguro en MySqlConnector (a diferencia de SqlClient)
+                // MySqlConnector infiere tipos correctamente desde el valor .NET
                 cmd.Parameters.AddWithValue("@idPizza", idPizza);
                 cmd.Parameters.AddWithValue("@idAsistente", idAsistente);
                 cmd.Parameters.AddWithValue("@estado", EstadoPedido.Pendiente);

@@ -10,11 +10,15 @@ namespace PizzeriaOpita.App.Infra
     public static class Db
     {
         // ⚠️ ADVERTENCIA DE SEGURIDAD: 
-        // Esta cadena de conexión contiene credenciales hardcoded.
-        // RECOMENDACIÓN: Mover a appsettings.json o variables de entorno en producción.
-        // Ejemplo: Environment.GetEnvironmentVariable("MYSQL_CONNECTION_STRING")
+        // Esta cadena de conexión es solo para desarrollo local.
+        // RECOMENDACIÓN CRÍTICA para producción:
+        // 1. Usar variables de entorno: Environment.GetEnvironmentVariable("MYSQL_CONNECTION_STRING")
+        // 2. Habilitar SSL/TLS: SslMode=Required
+        // 3. Usar credenciales seguras (no root con password vacía)
+        // 4. Almacenar en Azure Key Vault, AWS Secrets Manager o similar
         private static readonly string ConnectionString = 
-            "Server=localhost;Database=pizzeria;User=root;Password=;SslMode=None;";
+            Environment.GetEnvironmentVariable("MYSQL_CONNECTION_STRING") 
+            ?? "Server=localhost;Database=pizzeria;User=pizzeria_user;Password=dev_password;SslMode=None;";
 
         /// <summary>
         /// Obtiene una nueva conexión a la base de datos.
